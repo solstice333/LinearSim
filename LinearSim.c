@@ -49,9 +49,9 @@ int main(int argc, char **argv) {
    pipe(fdLinkRight[BOT_PIPE]);
 
    push(clp, fdLinkRight[TOP_PIPE][W]);
-   push(clp, fdLinkRight[BOT_PIPE][W]);
+   push(clp, fdLinkRight[BOT_PIPE][R]);
    push(clc, fdLinkRight[TOP_PIPE][R]);
-   push(clc, fdLinkRight[BOT_PIPE][R]);
+   push(clc, fdLinkRight[BOT_PIPE][W]);
 
    // body
    int cpid = fork();
