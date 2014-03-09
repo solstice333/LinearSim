@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
    else if (cpid > 0) { 
       assert(clearCloseList(clp) == 0);
 
-      // beging creating interior cells
+      // begin creating interior cells
       for (c = 1; c < cells - 1; c++) {
          // setup
          mvfdNodes(clc, clp);
@@ -99,11 +99,9 @@ int main(int argc, char **argv) {
             fprintf(stderr, "Cell %d read report from left"
              " id: %d, step: %d, value: %lf\n", 
              rThis.id, r.id, r.step, r.value);
+
+            write(fdLinkRight[TOP_PIPE][W], &r, sizeof(Report));
              
-            // second to last cell does not write to last cell due to fault
-            if (rThis.id != cells - 2) 
-               write(fdLinkRight[TOP_PIPE][W], &r, sizeof(Report));
-            
             read(fdLinkRight[BOT_PIPE][R], &r, sizeof(Report));
             fprintf(stderr, "Cell %d read report from right"
              " id: %d, step: %d, value: %lf\n", 
@@ -120,12 +118,12 @@ int main(int argc, char **argv) {
          fdLinkLeft[TOP_PIPE][i] = fdLinkRight[TOP_PIPE][i];
          fdLinkLeft[BOT_PIPE][i] = fdLinkRight[BOT_PIPE][i];
       }
-      assert(close(fdLinkLeft[TOP_PIPE][R]) == 0);
       cpid = fork();
       if (cpid < 0) 
          fprintf(stderr, "Something forked up\n");
       else if (cpid > 0) { 
          assert(close(fdLinkLeft[BOT_PIPE][W]) == 0);
+         assert(close(fdLinkLeft[TOP_PIPE][R]) == 0);
       }
       else {   // last child
          assert(close(fdCellRep[R]) == 0);
@@ -134,6 +132,10 @@ int main(int argc, char **argv) {
          Report rThis = { c, c + 100, c + 0.25 }; 
          Report r;
          write(fdCellRep[W], &rThis, sizeof(Report));
+
+         // this line is to make sure the reader on this end doesn't close 
+         // before the left cell writes to the pipe
+         read(fdLinkLeft[TOP_PIPE][R], &r, sizeof(Report));
 
          write(fdLinkLeft[BOT_PIPE][W], &rThis, sizeof(Report));
 #endif
