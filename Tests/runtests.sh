@@ -26,5 +26,5 @@ echo -e "\nTEST3\n"
 ./saferun -p$(($base+$cells3)) ./LinearSim < test3.in | sort -n > test3k.out
 diff test3k.out test3.out
 
-echo -e "\nChecking ps list"
+echo -e "\nChecking process list"
 ps -u benson | grep Cell && ps -u benson | grep LinearSim && ps -u benson | grep a.out

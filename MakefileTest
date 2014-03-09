@@ -1,7 +1,7 @@
 CC=gcc
 FLAGS=-g
-FILES=CloseList.c LinearSim.c 
-OBJ=CloseList.o LinearSim.o 
+FILES=CloseList.c test.c 
+OBJ=CloseList.o test.o 
 OUT=a.out
 
 all: build
@@ -12,8 +12,8 @@ build: $(OBJ)
 CloseList.o: CloseList.c CloseList.h
 	$(CC) $(FLAGS) -c  CloseList.c
 
-LinearSim.o: LinearSim.c Report.h CloseList.h
-	$(CC) $(FLAGS) -c  LinearSim.c
+test.o: test.c Report.h CloseList.h
+	$(CC) $(FLAGS) -c  test.c
 
 clean:
 	rm -rf $(OBJ) $(OUT)

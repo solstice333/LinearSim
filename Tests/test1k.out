@@ -1,0 +1,96 @@
+Child 0 exits with 42
+Child 1 exits with 0
+Child 2 exits with 0
+Child 3 exits with 0
+Child 4 exits with 0
+Child 5 exits with 0
+Child 6 exits with 0
+Child 7 exits with 42
+Result from 0, step 0: 42.000
+Result from 0, step 10: 42.000
+Result from 0, step 1: 42.000
+Result from 0, step 2: 42.000
+Result from 0, step 3: 42.000
+Result from 0, step 4: 42.000
+Result from 0, step 5: 42.000
+Result from 0, step 6: 42.000
+Result from 0, step 7: 42.000
+Result from 0, step 8: 42.000
+Result from 0, step 9: 42.000
+Result from 1, step 0: 0.000
+Result from 1, step 10: 32.953
+Result from 1, step 1: 21.000
+Result from 1, step 2: 21.000
+Result from 1, step 3: 26.250
+Result from 1, step 4: 26.250
+Result from 1, step 5: 28.875
+Result from 1, step 6: 29.250
+Result from 1, step 7: 30.891
+Result from 1, step 8: 31.359
+Result from 1, step 9: 32.508
+Result from 2, step 0: 0.000
+Result from 2, step 1: 0.000
+Result from 2, step 10: 25.629
+Result from 2, step 2: 10.500
+Result from 2, step 3: 10.500
+Result from 2, step 4: 15.750
+Result from 2, step 5: 16.500
+Result from 2, step 6: 19.781
+Result from 2, step 7: 20.719
+Result from 2, step 8: 23.016
+Result from 2, step 9: 23.906
+Result from 3, step 0: 0.000
+Result from 3, step 1: 0.000
+Result from 3, step 10: 19.852
+Result from 3, step 2: 0.000
+Result from 3, step 3: 5.250
+Result from 3, step 4: 6.750
+Result from 3, step 5: 10.688
+Result from 3, step 6: 12.188
+Result from 3, step 7: 15.141
+Result from 3, step 8: 16.453
+Result from 3, step 9: 18.750
+Result from 4, step 0: 0.000
+Result from 4, step 1: 0.000
+Result from 4, step 10: 17.725
+Result from 4, step 2: 0.000
+Result from 4, step 3: 3.000
+Result from 4, step 4: 5.625
+Result from 4, step 5: 7.875
+Result from 4, step 6: 10.500
+Result from 4, step 7: 12.188
+Result from 4, step 8: 14.484
+Result from 4, step 9: 15.797
+Result from 5, step 0: 0.000
+Result from 5, step 1: 0.000
+Result from 5, step 10: 17.684
+Result from 5, step 2: 6.000
+Result from 5, step 3: 6.000
+Result from 5, step 4: 9.000
+Result from 5, step 5: 10.312
+Result from 5, step 6: 12.188
+Result from 5, step 7: 13.828
+Result from 5, step 8: 15.141
+Result from 5, step 9: 16.699
+Result from 6, step 0: 0.000
+Result from 6, step 10: 20.350
+Result from 6, step 1: 12.000
+Result from 6, step 2: 12.000
+Result from 6, step 3: 15.000
+Result from 6, step 4: 15.000
+Result from 6, step 5: 16.500
+Result from 6, step 6: 17.156
+Result from 6, step 7: 18.094
+Result from 6, step 8: 18.914
+Result from 6, step 9: 19.570
+Result from 7, step 0: 24.000
+Result from 7, step 10: 24.000
+Result from 7, step 1: 24.000
+Result from 7, step 2: 24.000
+Result from 7, step 3: 24.000
+Result from 7, step 4: 24.000
+Result from 7, step 5: 24.000
+Result from 7, step 6: 24.000
+Result from 7, step 7: 24.000
+Result from 7, step 8: 24.000
+Result from 7, step 9: 24.000
