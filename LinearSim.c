@@ -8,8 +8,7 @@
 #include "CloseList.h"
 #include "BuildArgs.h"
 
-#define DEBUG_PIPES 0
-#define DEBUG_EXEC 1
+#define MAP_SIZE 256
 
 #define CELL_LINK 2
 #define TOP_PIPE 0
@@ -27,8 +26,8 @@
 int main(int argc, char **argv) {
    double left, right;
    int time, cells = 0; 
-   int id = 0;
    int reportfd[2]; 
+   pid_t idMap[MAP_SIZE];
 
    scanf(" %lf %lf %d %d", &left, &right, &time, &cells);
    if (time < 0)
@@ -54,10 +53,11 @@ int main(int argc, char **argv) {
    push(clc, fdLinkRight[BOT_PIPE][W]);
 
    // body
-   int cpid = fork();
+   pid_t cpid = fork();
    if (cpid < 0)
       fprintf(stderr, "Something forked up\n");
    else if (cpid > 0) { 
+      idMap[0] = cpid; // cpid for first child
       assert(clearCloseList(clp) == 0);
 
       // begin creating interior cells
@@ -81,8 +81,10 @@ int main(int argc, char **argv) {
          cpid = fork();
          if (cpid < 0) 
             fprintf(stderr, "Something forked up\n"); 
-         else if (cpid > 0) 
+         else if (cpid > 0) { 
+            idMap[c] = cpid; // cpid for interior children
             assert(clearCloseList(clp) == 0); 
+         }
          else {   // interior child   
             assert(clearCloseList(clc) == 0);
             assert(close(fdCellRep[R]) == 0);
@@ -112,8 +114,6 @@ int main(int argc, char **argv) {
                 'I', fdLinkLeft[TOP_PIPE][R],
                 'I', fdLinkRight[BOT_PIPE][R],
                 'D', c));
-
-            return 0;
          }
       }
 
@@ -126,6 +126,7 @@ int main(int argc, char **argv) {
       if (cpid < 0) 
          fprintf(stderr, "Something forked up\n");
       else if (cpid > 0) { 
+         idMap[c] = cpid; // cpid for last child
          assert(close(fdLinkLeft[BOT_PIPE][W]) == 0);
          assert(close(fdLinkLeft[TOP_PIPE][R]) == 0);
       }
@@ -138,8 +139,6 @@ int main(int argc, char **argv) {
           'O', fdCellRep[W],
           'V', right, 
           'D', c));
-
-         return 0;
       }
    }
    else {   // first child 
@@ -152,23 +151,22 @@ int main(int argc, char **argv) {
        'O', fdCellRep[W],
        'V', left, 
        'D', 0));
-
-      return 0;
    }
 
    // parent teardown
    close(fdCellRep[W]); 
 
-   int status;
    Report r;
    while (read(fdCellRep[R], &r, sizeof(Report))) {
-      fprintf(stdout, "Result from %d, step %d: %0.3lf\n",
-       r.id, r.step, r.value);
+      printf("Result from %d, step %d: %0.3lf\n", r.id, r.step, r.value);
 
       if (r.step == time) {
-         wait(&status);
-         fprintf(stdout, "Child %d exits with %d\n", 
-          r.id, WEXITSTATUS(status));
+         int status;
+         cpid = wait(&status);
+
+         for (i = 0; i < cells; i++) 
+            if (cpid == idMap[i]) 
+               printf("Child %d exits with %d\n", i, WEXITSTATUS(status));
       }
    }
 
