@@ -36,7 +36,7 @@ int main(int argc, char **argv) {
    if (cells < 0)
       cells = 0;
 
-#if DEBUG_EXEC || DEBUG_PIPES
+#if DEBUG_PIPES
    fprintf(stderr, "left: %0.1lf\n", left);
    fprintf(stderr, "right: %0.1lf\n", right);
    fprintf(stderr, "time: %d\n", time);
@@ -202,21 +202,23 @@ int main(int argc, char **argv) {
       return 0;
    }
 
+   // parent teardown
    close(fdCellRep[W]); 
 
-   // test reading in reports in parent     
 #if DEBUG_EXEC || DEBUG_PIPES
-   int bytes;
+   int status;
    Report r;
-   while (bytes = read(fdCellRep[R], &r, sizeof(Report))) {
-      fprintf(stdout, "Report r in parent: id %d, step %d, value %lf\n", 
+   while (read(fdCellRep[R], &r, sizeof(Report))) {
+      fprintf(stdout, "Result from %d, step %d: %0.3lf\n",
        r.id, r.step, r.value);
+
+      if (r.step == time) {
+         wait(&status);
+         fprintf(stdout, "Child %d exits with %d\n", 
+          r.id, WEXITSTATUS(status));
+      }
    }
 #endif
-
-   // parent teardown
-   for (i = 0; i < cells; i++) 
-      wait(NULL);
 
    deleteCloseList(clp);
    deleteCloseList(clc);
