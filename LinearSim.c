@@ -6,8 +6,10 @@
 #include <sys/wait.h>
 #include "Report.h"
 #include "CloseList.h"
+#include "BuildArgs.h"
 
-#define DEBUG 1
+#define DEBUG_PIPES 0
+#define DEBUG_EXEC 1
 
 #define CELL_LINK 2
 #define TOP_PIPE 0
@@ -16,6 +18,11 @@
 #define CLOSE_CHILD 2
 #define R 0
 #define W 1
+
+#define CELL_EXEC "./Cell"
+#define ARG_COUNT_FIRST 5
+#define ARG_COUNT_INTERIOR 6
+#define ARG_COUNT_LAST 5
 
 int main(int argc, char **argv) {
    double left, right;
@@ -29,7 +36,7 @@ int main(int argc, char **argv) {
    if (cells < 0)
       cells = 0;
 
-#if DEBUG
+#if DEBUG_EXEC || DEBUG_PIPES
    fprintf(stderr, "left: %0.1lf\n", left);
    fprintf(stderr, "right: %0.1lf\n", right);
    fprintf(stderr, "time: %d\n", time);
@@ -65,7 +72,7 @@ int main(int argc, char **argv) {
          // setup
          mvfdNodes(clc, clp);
 
-#if DEBUG
+#if DEBUG_PIPES
          Report rThis = { c, c + 100, c + 0.25 };          
 #endif
 
@@ -91,7 +98,7 @@ int main(int argc, char **argv) {
             assert(clearCloseList(clc) == 0);
             assert(close(fdCellRep[R]) == 0);
 
-#if DEBUG
+#if DEBUG_PIPES
             Report r;
             write(fdCellRep[W], &rThis, sizeof(Report));
 
@@ -107,8 +114,33 @@ int main(int argc, char **argv) {
              " id: %d, step: %d, value: %lf\n", 
              rThis.id, r.id, r.step, r.value);
             write(fdLinkLeft[BOT_PIPE][W], &r, sizeof(Report));
+#elif DEBUG_EXEC
+            if (c == 1)
+               execv(CELL_EXEC, buildArgs(ARG_COUNT_INTERIOR,
+                'S', time,
+                'O', fdLinkRight[TOP_PIPE][W],
+                'O', fdCellRep[W],
+                'I', fdLinkLeft[TOP_PIPE][R],
+                'I', fdLinkRight[BOT_PIPE][R],
+                'D', c));
+            else if (c == cells - 2)
+               execv(CELL_EXEC, buildArgs(ARG_COUNT_INTERIOR,
+                'S', time,
+                'O', fdLinkLeft[BOT_PIPE][W],
+                'O', fdCellRep[W],
+                'I', fdLinkLeft[TOP_PIPE][R],
+                'I', fdLinkRight[BOT_PIPE][R],
+                'D', c));
+            else 
+               execv(CELL_EXEC, buildArgs(ARG_COUNT_INTERIOR + 1,
+                'S', time,
+                'O', fdLinkLeft[BOT_PIPE][W],
+                'O', fdLinkRight[TOP_PIPE][W],
+                'O', fdCellRep[W],
+                'I', fdLinkLeft[TOP_PIPE][R],
+                'I', fdLinkRight[BOT_PIPE][R],
+                'D', c));
 #endif
-
             return 0;
          }
       }
@@ -128,7 +160,7 @@ int main(int argc, char **argv) {
       else {   // last child
          assert(close(fdCellRep[R]) == 0);
 
-#if DEBUG
+#if DEBUG_PIPES
          Report rThis = { c, c + 100, c + 0.25 }; 
          Report r;
          write(fdCellRep[W], &rThis, sizeof(Report));
@@ -138,6 +170,13 @@ int main(int argc, char **argv) {
          read(fdLinkLeft[TOP_PIPE][R], &r, sizeof(Report));
 
          write(fdLinkLeft[BOT_PIPE][W], &rThis, sizeof(Report));
+#elif DEBUG_EXEC
+         execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST, 
+          'S', time, 
+          'O', fdLinkLeft[BOT_PIPE][W], 
+          'O', fdCellRep[W],
+          'V', right, 
+          'D', c));
 #endif
 
          return 0;
@@ -147,10 +186,17 @@ int main(int argc, char **argv) {
       assert(clearCloseList(clc) == 0);
       assert(close(fdCellRep[R]) == 0);
 
-#if DEBUG
+#if DEBUG_PIPES
       Report r = { 0, 100, 100.5 };
       write(fdCellRep[W], &r, sizeof(Report));
       write(fdLinkRight[TOP_PIPE][W], &r, sizeof(Report));
+#elif DEBUG_EXEC
+      execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST, 
+       'S', time, 
+       'O', fdLinkRight[TOP_PIPE][W], 
+       'O', fdCellRep[W],
+       'V', left, 
+       'D', 0));
 #endif
 
       return 0;
@@ -159,7 +205,7 @@ int main(int argc, char **argv) {
    close(fdCellRep[W]); 
 
    // test reading in reports in parent     
-#if DEBUG
+#if DEBUG_EXEC || DEBUG_PIPES
    int bytes;
    Report r;
    while (bytes = read(fdCellRep[R], &r, sizeof(Report))) {
