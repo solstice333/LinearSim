@@ -157,16 +157,21 @@ int main(int argc, char **argv) {
    close(fdCellRep[W]); 
 
    Report r;
-   while (read(fdCellRep[R], &r, sizeof(Report))) {
-      printf("Result from %d, step %d: %0.3lf\n", r.id, r.step, r.value);
+   if (cells != 0) {
+      while (read(fdCellRep[R], &r, sizeof(Report))) {
+         if (time != 0)
+            printf("Result from %d, step %d: %0.3lf\n", 
+             r.id, r.step, r.value);
 
-      if (r.step == time) {
-         int status;
-         cpid = wait(&status);
+         if (r.step == time) {
+            int status;
+            cpid = wait(&status);
 
-         for (i = 0; i < cells; i++) 
-            if (cpid == idMap[i]) 
-               printf("Child %d exits with %d\n", i, WEXITSTATUS(status));
+            for (i = 0; i < cells; i++) 
+               if (cpid == idMap[i]) 
+                  printf("Child %d exits with %d\n", 
+                   i, WEXITSTATUS(status));
+         }
       }
    }
 

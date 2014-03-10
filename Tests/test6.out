@@ -1,0 +1,30 @@
+Child 0 exits with 42
+Child 1 exits with 0
+Child 2 exits with 0
+Child 3 exits with 0
+Child 4 exits with 42
+Result from 0, step 0: 23.200
+Result from 0, step 1: 23.200
+Result from 0, step 2: 23.200
+Result from 0, step 3: 23.200
+Result from 0, step 4: 23.200
+Result from 1, step 0: 0.000
+Result from 1, step 1: 11.600
+Result from 1, step 2: 11.600
+Result from 1, step 3: 19.637
+Result from 1, step 4: 19.637
+Result from 2, step 0: 0.000
+Result from 2, step 1: 0.000
+Result from 2, step 2: 16.075
+Result from 2, step 3: 16.075
+Result from 2, step 4: 24.112
+Result from 3, step 0: 0.000
+Result from 3, step 1: 20.550
+Result from 3, step 2: 20.550
+Result from 3, step 3: 28.587
+Result from 3, step 4: 28.587
+Result from 4, step 0: 41.100
+Result from 4, step 1: 41.100
+Result from 4, step 2: 41.100
+Result from 4, step 3: 41.100
+Result from 4, step 4: 41.100

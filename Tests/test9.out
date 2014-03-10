@@ -1,0 +1,20 @@
+Child 0 exits with 42
+Child 1 exits with 0
+Child 2 exits with 0
+Child 3 exits with 42
+Result from 0, step 0: 5.000
+Result from 0, step 1: 5.000
+Result from 0, step 2: 5.000
+Result from 0, step 3: 5.000
+Result from 1, step 0: 0.000
+Result from 1, step 1: 2.500
+Result from 1, step 2: 5.000
+Result from 1, step 3: 5.625
+Result from 2, step 0: 0.000
+Result from 2, step 1: 5.000
+Result from 2, step 2: 6.250
+Result from 2, step 3: 7.500
+Result from 3, step 0: 10.000
+Result from 3, step 1: 10.000
+Result from 3, step 2: 10.000
+Result from 3, step 3: 10.000
