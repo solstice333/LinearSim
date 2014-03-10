@@ -81,4 +81,4 @@ echo -e "\nTEST10\n"
 diff test10k.out Tests/test10.out
 
 echo -e "\nChecking process list"
-ps -u benson | grep Cell && ps -u benson | grep LinearSim && ps -u benson | grep a.out
+ps -A | grep Cell && ps -A | grep LinearSim && ps -A | grep a.out
