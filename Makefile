@@ -3,7 +3,7 @@ FLAGS=-g
 FILES=LinearSim.c Cell.c
 OBJ=LinearSim.o 
 OBJ2=Cell.o
-OUT=a.out test*k.out
+OUT=a.out Cell test*k.out
 
 all: build
 
