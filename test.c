@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <assert.h>
-#include "BuildArgs.h" 
+#include <unistd.h>
 
 int main() {
-   pid_t x = 10;
-   pid_t y = 30;
-   printf("%d\n", x == y);
+   int fd[2];
+   pipe(fd);
+
+   fprintf(stderr, "fd[0]: %d\n", fd[0]);
+   fprintf(stderr, "fd[1]: %d\n", fd[1]);
+   //fprintf(stderr, "close: %d\n", close(3));
 }

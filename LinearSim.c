@@ -23,10 +23,11 @@
 #define ARG_COUNT_INTERIOR 6
 #define ARG_COUNT_LAST 5
 
+#define HACKED 2
+
 int main(int argc, char **argv) {
    double left, right;
    int time, cells = 0; 
-   int reportfd[2]; 
    pid_t idMap[MAP_SIZE];
 
    scanf(" %lf %lf %d %d", &left, &right, &time, &cells);
@@ -145,12 +146,19 @@ int main(int argc, char **argv) {
       assert(clearCloseList(clc) == 0);
       assert(close(fdCellRep[R]) == 0);
 
-      execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST, 
-       'S', time, 
-       'O', fdLinkRight[TOP_PIPE][W], 
-       'O', fdCellRep[W],
-       'V', left, 
-       'D', 0));
+      if (cells == HACKED)
+         execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST, 
+          'S', time, 
+          'O', fdCellRep[W],
+          'V', left, 
+          'D', 0));
+      else
+         execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST, 
+          'S', time, 
+          'O', fdLinkRight[TOP_PIPE][W], 
+          'O', fdCellRep[W],
+          'V', left, 
+          'D', 0));
    }
 
    // parent teardown
