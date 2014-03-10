@@ -1,12 +1,10 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <assert.h>
 #include <unistd.h>
+#include <stdarg.h>
 #include <sys/types.h>
 #include <sys/wait.h>
 #include "Report.h"
-#include "CloseList.h"
-#include "BuildArgs.h"
 
 #define MAP_SIZE 256
 
@@ -23,7 +21,29 @@
 #define ARG_COUNT_INTERIOR 6
 #define ARG_COUNT_LAST 5
 
-#define HACKED 2
+#define TWO 2
+
+#define MAX_ARGS 16
+#define MAX_STR_SIZE 32
+
+typedef struct fdNode {
+   int fd;
+   struct fdNode *next, *prev;
+} fdNode;
+
+typedef struct closeList {
+   int max, size;
+   fdNode *head, *tail;
+} closeList;
+
+closeList *createCloseList(int max);
+void push(closeList *cl, int value);
+void mvfdNodes(closeList *src, closeList *dst);
+int pop(closeList *cl);
+int clearCloseList(closeList *cl);
+void deleteCloseList(closeList *cl);
+void printCloseList(closeList *c);
+char **buildArgs(int numPairs, ...);
 
 int main(int argc, char **argv) {
    double left, right;
@@ -36,7 +56,6 @@ int main(int argc, char **argv) {
    if (cells < 0)
       cells = 0;
 
-   // setup parent
    int i, c;
    int fdCellRep[2];
    int fdLinkRight[CELL_LINK][2];
@@ -53,17 +72,14 @@ int main(int argc, char **argv) {
    push(clc, fdLinkRight[TOP_PIPE][R]);
    push(clc, fdLinkRight[BOT_PIPE][W]);
 
-   // body
    pid_t cpid = fork();
    if (cpid < 0)
       fprintf(stderr, "Something forked up\n");
    else if (cpid > 0) { 
-      idMap[0] = cpid; // cpid for first child
-      assert(clearCloseList(clp) == 0);
+      idMap[0] = cpid; 
+      clearCloseList(clp);
 
-      // begin creating interior cells
       for (c = 1; c < cells - 1; c++) {
-         // setup
          mvfdNodes(clc, clp);
 
          for (i = 0; i < 2; i++) {
@@ -78,17 +94,16 @@ int main(int argc, char **argv) {
          push(clc, fdLinkRight[TOP_PIPE][R]);
          push(clc, fdLinkRight[BOT_PIPE][W]);
 
-         // body
          cpid = fork();
          if (cpid < 0) 
             fprintf(stderr, "Something forked up\n"); 
          else if (cpid > 0) { 
-            idMap[c] = cpid; // cpid for interior children
-            assert(clearCloseList(clp) == 0); 
+            idMap[c] = cpid; 
+            clearCloseList(clp); 
          }
-         else {   // interior child   
-            assert(clearCloseList(clc) == 0);
-            assert(close(fdCellRep[R]) == 0);
+         else {   
+            clearCloseList(clc);
+            close(fdCellRep[R]);
 
             if (c == 1)
                execv(CELL_EXEC, buildArgs(ARG_COUNT_INTERIOR,
@@ -98,7 +113,7 @@ int main(int argc, char **argv) {
                 'I', fdLinkLeft[TOP_PIPE][R],
                 'I', fdLinkRight[BOT_PIPE][R],
                 'D', c));
-            else if (c == cells - 2)
+            else if (c == cells - TWO)
                execv(CELL_EXEC, buildArgs(ARG_COUNT_INTERIOR,
                 'S', time,
                 'O', fdLinkLeft[BOT_PIPE][W],
@@ -118,7 +133,6 @@ int main(int argc, char **argv) {
          }
       }
 
-      // begin creating last cell
       for (i = 0; i < 2; i++) {
          fdLinkLeft[TOP_PIPE][i] = fdLinkRight[TOP_PIPE][i];
          fdLinkLeft[BOT_PIPE][i] = fdLinkRight[BOT_PIPE][i];
@@ -127,27 +141,34 @@ int main(int argc, char **argv) {
       if (cpid < 0) 
          fprintf(stderr, "Something forked up\n");
       else if (cpid > 0) { 
-         idMap[c] = cpid; // cpid for last child
-         assert(close(fdLinkLeft[BOT_PIPE][W]) == 0);
-         assert(close(fdLinkLeft[TOP_PIPE][R]) == 0);
+         idMap[c] = cpid; 
+         close(fdLinkLeft[BOT_PIPE][W]);
+         close(fdLinkLeft[TOP_PIPE][R]);
       }
-      else {   // last child
-         assert(close(fdCellRep[R]) == 0);
+      else { 
+         close(fdCellRep[R]);
 
-         execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST, 
-          'S', time, 
-          'O', fdLinkLeft[BOT_PIPE][W], 
-          'O', fdCellRep[W],
-          'V', right, 
-          'D', c));
+         if (cells == TWO)
+            execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST - 1, 
+             'S', time, 
+             'O', fdCellRep[W],
+             'V', right, 
+             'D', c));
+         else
+            execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST, 
+             'S', time, 
+             'O', fdLinkLeft[BOT_PIPE][W], 
+             'O', fdCellRep[W],
+             'V', right, 
+             'D', c));
       }
    }
-   else {   // first child 
-      assert(clearCloseList(clc) == 0);
-      assert(close(fdCellRep[R]) == 0);
+   else {   
+      clearCloseList(clc);
+      close(fdCellRep[R]);
 
-      if (cells == HACKED)
-         execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST, 
+      if (cells == TWO)
+         execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST - 1, 
           'S', time, 
           'O', fdCellRep[W],
           'V', left, 
@@ -161,7 +182,6 @@ int main(int argc, char **argv) {
           'D', 0));
    }
 
-   // parent teardown
    close(fdCellRep[W]); 
 
    Report r;
@@ -186,4 +206,111 @@ int main(int argc, char **argv) {
    deleteCloseList(clp);
    deleteCloseList(clc);
    return 0;
+}
+
+closeList *createCloseList(int max) {
+   closeList *cl = malloc(sizeof(closeList));
+   cl->max = max;
+   cl->size = 0;
+   cl->head = cl->tail = NULL;
+   return cl;
+}
+
+void push(closeList *cl, int value) {
+   fdNode *newfd = malloc(sizeof(fdNode));
+   newfd->fd = value;
+   newfd->next = cl->head;
+   newfd->prev = NULL;
+
+   if (cl->size == 0)
+      cl->tail = newfd;
+   else
+      newfd->next->prev = newfd;
+   cl->head = newfd;
+
+   if (cl->size == cl->max) {
+      cl->tail = cl->tail->prev;
+      free(cl->tail->next);
+      cl->tail->next = NULL;
+      cl->size--;    
+   }
+   cl->size++;
+}
+
+void mvfdNodes(closeList *src, closeList *dst) {
+   fdNode *delete = src->head;
+   while(delete) {
+      push(dst, delete->fd);
+      src->head = delete->next;
+      free(delete);
+      delete = src->head;
+      src->size--;
+   }
+}
+
+int pop(closeList *cl) {
+   int rtn = -1;
+
+   fdNode *delete = cl->head;
+      if (delete) {
+      rtn = delete->fd;
+      cl->head = delete->next;
+      free(delete);
+   }
+   return rtn;
+}
+
+int clearCloseList(closeList *cl) {
+   int rtn = 0;
+
+   fdNode *delete = cl->head;
+   while(cl->head) {
+      cl->head = delete->next;
+      rtn |= close(delete->fd);
+      free(delete);
+      delete = cl->head;
+      cl->size--;
+   }
+   return rtn;
+}
+
+void deleteCloseList(closeList *cl) {
+   clearCloseList(cl);
+   free(cl);
+}
+
+void printCloseList(closeList *cl) {
+   fdNode *n = cl->head;
+
+   printf("size: %d | ", cl->size);
+   while (n) {
+      if (!n->next)
+         printf("%d", n->fd);
+      else
+         printf("%d, ", n->fd);
+      n = n->next;
+   }
+   printf("\n");
+}
+
+char **buildArgs(int numPairs, ...) {
+   va_list params;
+   va_start(params, numPairs);
+
+   int i, c;
+   char **args = malloc(MAX_ARGS * sizeof(char *));
+
+   args[0] = "Cell";
+   for (i = 1; i <= numPairs; i++) {
+      char *str = malloc(MAX_STR_SIZE * sizeof(char));
+      c = va_arg(params, int);
+      if (c != 'V')
+         sprintf(str, "%c%d", c, va_arg(params, int));
+      else
+         sprintf(str, "%c%0.1lf", c, va_arg(params, double));
+      args[i] = str;
+   }
+   args[i] = NULL;
+
+   return args;
 }

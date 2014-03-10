@@ -1,6 +1,6 @@
 #!/bin/bash
 
-mfName=MakefileStaleyCell
+mfName=Makefile
 
 if [ $# -eq 0 ]; then
    echo "Usage: addRules.sh [ file1 file2 ... ]"
