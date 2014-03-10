@@ -36,13 +36,6 @@ int main(int argc, char **argv) {
    if (cells < 0)
       cells = 0;
 
-#if DEBUG_PIPES
-   fprintf(stderr, "left: %0.1lf\n", left);
-   fprintf(stderr, "right: %0.1lf\n", right);
-   fprintf(stderr, "time: %d\n", time);
-   fprintf(stderr, "cells: %d\n", cells);
-#endif
-
    // setup parent
    int i, c;
    int fdCellRep[2];
@@ -72,10 +65,6 @@ int main(int argc, char **argv) {
          // setup
          mvfdNodes(clc, clp);
 
-#if DEBUG_PIPES
-         Report rThis = { c, c + 100, c + 0.25 };          
-#endif
-
          for (i = 0; i < 2; i++) {
             fdLinkLeft[TOP_PIPE][i] = fdLinkRight[TOP_PIPE][i];
             fdLinkLeft[BOT_PIPE][i] = fdLinkRight[BOT_PIPE][i];
@@ -98,23 +87,6 @@ int main(int argc, char **argv) {
             assert(clearCloseList(clc) == 0);
             assert(close(fdCellRep[R]) == 0);
 
-#if DEBUG_PIPES
-            Report r;
-            write(fdCellRep[W], &rThis, sizeof(Report));
-
-            read(fdLinkLeft[TOP_PIPE][R], &r, sizeof(Report));
-            fprintf(stderr, "Cell %d read report from left"
-             " id: %d, step: %d, value: %lf\n", 
-             rThis.id, r.id, r.step, r.value);
-
-            write(fdLinkRight[TOP_PIPE][W], &r, sizeof(Report));
-             
-            read(fdLinkRight[BOT_PIPE][R], &r, sizeof(Report));
-            fprintf(stderr, "Cell %d read report from right"
-             " id: %d, step: %d, value: %lf\n", 
-             rThis.id, r.id, r.step, r.value);
-            write(fdLinkLeft[BOT_PIPE][W], &r, sizeof(Report));
-#elif DEBUG_EXEC
             if (c == 1)
                execv(CELL_EXEC, buildArgs(ARG_COUNT_INTERIOR,
                 'S', time,
@@ -140,7 +112,7 @@ int main(int argc, char **argv) {
                 'I', fdLinkLeft[TOP_PIPE][R],
                 'I', fdLinkRight[BOT_PIPE][R],
                 'D', c));
-#endif
+
             return 0;
          }
       }
@@ -160,24 +132,12 @@ int main(int argc, char **argv) {
       else {   // last child
          assert(close(fdCellRep[R]) == 0);
 
-#if DEBUG_PIPES
-         Report rThis = { c, c + 100, c + 0.25 }; 
-         Report r;
-         write(fdCellRep[W], &rThis, sizeof(Report));
-
-         // this line is to make sure the reader on this end doesn't close 
-         // before the left cell writes to the pipe
-         read(fdLinkLeft[TOP_PIPE][R], &r, sizeof(Report));
-
-         write(fdLinkLeft[BOT_PIPE][W], &rThis, sizeof(Report));
-#elif DEBUG_EXEC
          execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST, 
           'S', time, 
           'O', fdLinkLeft[BOT_PIPE][W], 
           'O', fdCellRep[W],
           'V', right, 
           'D', c));
-#endif
 
          return 0;
       }
@@ -186,18 +146,12 @@ int main(int argc, char **argv) {
       assert(clearCloseList(clc) == 0);
       assert(close(fdCellRep[R]) == 0);
 
-#if DEBUG_PIPES
-      Report r = { 0, 100, 100.5 };
-      write(fdCellRep[W], &r, sizeof(Report));
-      write(fdLinkRight[TOP_PIPE][W], &r, sizeof(Report));
-#elif DEBUG_EXEC
       execv(CELL_EXEC, buildArgs(ARG_COUNT_FIRST, 
        'S', time, 
        'O', fdLinkRight[TOP_PIPE][W], 
        'O', fdCellRep[W],
        'V', left, 
        'D', 0));
-#endif
 
       return 0;
    }
@@ -205,7 +159,6 @@ int main(int argc, char **argv) {
    // parent teardown
    close(fdCellRep[W]); 
 
-#if DEBUG_EXEC || DEBUG_PIPES
    int status;
    Report r;
    while (read(fdCellRep[R], &r, sizeof(Report))) {
@@ -218,7 +171,6 @@ int main(int argc, char **argv) {
           r.id, WEXITSTATUS(status));
       }
    }
-#endif
 
    deleteCloseList(clp);
    deleteCloseList(clc);

@@ -2,7 +2,7 @@ CC=gcc
 FLAGS=-g
 FILES=BuildArgs.c CloseList.c LinearSim.c 
 OBJ=BuildArgs.o CloseList.o LinearSim.o 
-OUT=a.out
+OUT=a.out test*k.out
 
 all: build
 
